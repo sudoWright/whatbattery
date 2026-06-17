@@ -180,7 +180,7 @@ Issues and PRs welcome. The code is small and tries to stay readable.
 | Module | Role |
 | --- | --- |
 | [`Sources/WhatBattery/`](Sources/WhatBattery/) | Menu bar app UI (SwiftUI dropdown, main window, settings pane) |
-| [`Sources/WhatBatteryCore/`](Sources/WhatBatteryCore/) | Pure Swift: models, health math, formatters, report/export logic. No IOKit. |
+| [`Sources/WhatBatteryCore/`](Sources/WhatBatteryCore/) | Pure Swift: battery models, health math, and formatters. No IOKit. |
 | [`Sources/WhatBatteryDarwinBackend/`](Sources/WhatBatteryDarwinBackend/) | All IOKit / SMC: AppleSmartBattery reader, SMC power reader, system info, iDevice bridge |
 | [`Sources/WhatBatteryAppKit/`](Sources/WhatBatteryAppKit/) | Plugin registry and extension points (hooks for Pro features, CLI commands, menu items) |
 | [`Sources/WhatBatteryWidget/`](Sources/WhatBatteryWidget/) | WidgetKit extension (desktop widget) |
