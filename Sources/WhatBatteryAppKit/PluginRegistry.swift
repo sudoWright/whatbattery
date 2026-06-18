@@ -62,6 +62,15 @@ public final class PluginRegistry {
         historySectionBuilder = historySection
     }
 
+    // The charging-session / charger-verdict view injected into the main window's
+    // This Mac tab, below the Lifetime Analyzer, gated by licence. Nil in the free
+    // build (the public mirror's no-op bootstrap never registers it), so the
+    // section is simply absent there.
+    public private(set) var chargingSectionBuilder: (@MainActor () -> AnyView)?
+    public func register(chargingSection: @escaping @MainActor () -> AnyView) {
+        chargingSectionBuilder = chargingSection
+    }
+
     // The iPhone/iPad view injected into the main window's iDevice tab, gated by
     // licence. Nil in the free build (the public mirror's no-op bootstrap never
     // registers it), so the window shows a Pro upsell instead.

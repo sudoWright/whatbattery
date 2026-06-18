@@ -51,6 +51,7 @@ struct MainWindowView: View {
                     OverviewCard(snapshot: snapshot, tempUnit: tempUnit, isPro: proStatus.isUnlocked)
                     Divider()
                     historySection
+                    chargingSection
                 } else {
                     ContentUnavailableView(
                         "No battery on this Mac",
@@ -71,6 +72,17 @@ struct MainWindowView: View {
             build()
         } else {
             ProUpsellCard()
+        }
+    }
+
+    @ViewBuilder
+    private var chargingSection: some View {
+        // The charging-session view is Pro and lives in the plugins module, so the
+        // builder is nil in the free build. The history section above already
+        // carries the Pro upsell when locked, so this is simply absent then.
+        if proStatus.isUnlocked, let build = PluginRegistry.shared.chargingSectionBuilder {
+            Divider()
+            build()
         }
     }
 
