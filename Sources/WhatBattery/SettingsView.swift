@@ -26,8 +26,27 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        // Embedded in the popover: a bounded height that gives the settings room
-        // and lets the grouped form scroll if the sections overflow.
-        .frame(width: embedded ? nil : 360, height: embedded ? embeddedHeight : 280)
+        // Embedded in the popover: a bounded height matching the popover, scrolling
+        // internally. As a standalone window: fill a resizable window (with sane
+        // minimums) so every section has room and the form scrolls if shrunk.
+        .modifier(SettingsFrame(embedded: embedded, embeddedHeight: embeddedHeight))
+    }
+}
+
+/// Sizes the settings form: a fixed height when embedded in the popover, or a
+/// flexible fill with minimums when it's its own resizable window.
+private struct SettingsFrame: ViewModifier {
+    let embedded: Bool
+    let embeddedHeight: CGFloat
+
+    func body(content: Content) -> some View {
+        if embedded {
+            content.frame(height: embeddedHeight)
+        } else {
+            content.frame(
+                minWidth: 400, idealWidth: 420, maxWidth: .infinity,
+                minHeight: 420, idealHeight: 560, maxHeight: .infinity
+            )
+        }
     }
 }

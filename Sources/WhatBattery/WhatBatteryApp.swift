@@ -206,6 +206,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(withTitle: "About WhatBattery", action: #selector(showAbout), keyEquivalent: "")
         menu.addItem(withTitle: "Settings…", action: #selector(showSettings), keyEquivalent: ",")
+        menu.addItem(withTitle: "WhatBattery on GitHub", action: #selector(openGitHub), keyEquivalent: "")
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit WhatBattery", action: #selector(quit), keyEquivalent: "q")
         for item in menu.items where item.action != nil { item.target = self }
@@ -222,9 +223,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.orderFrontStandardAboutPanel(nil)
     }
 
+    @objc private func openGitHub() {
+        guard let url = URL(string: "https://github.com/darrylmorley/whatbattery") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     @objc private func showSettings() {
         closePopover()
-        settingsWindow = present(settingsWindow, title: "WhatBattery Settings", width: 380, height: 320) {
+        settingsWindow = present(settingsWindow, title: "WhatBattery Settings", width: 420, height: 560, resizable: true) {
             SettingsView()
         }
     }
@@ -258,9 +264,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         title: String,
         width: CGFloat,
         height: CGFloat,
+        resizable: Bool = false,
         @ViewBuilder content: () -> Content
     ) -> NSWindow {
-        let window = existing ?? makeWindow(title: title, width: width, height: height, resizable: false, content: content)
+        let window = existing ?? makeWindow(title: title, width: width, height: height, resizable: resizable, content: content)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
         return window
