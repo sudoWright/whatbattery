@@ -204,8 +204,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Don't leave the left-click popover open behind the menu.
         if popover.isShown { closePopover() }
         let menu = NSMenu()
-        menu.addItem(withTitle: "About WhatBattery", action: #selector(showAbout), keyEquivalent: "")
         menu.addItem(withTitle: "Settings…", action: #selector(showSettings), keyEquivalent: ",")
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "About WhatBattery", action: #selector(showAbout), keyEquivalent: "")
         menu.addItem(withTitle: "WhatBattery on GitHub", action: #selector(openGitHub), keyEquivalent: "")
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit WhatBattery", action: #selector(quit), keyEquivalent: "q")
