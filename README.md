@@ -43,6 +43,7 @@ WhatBattery is free and open source. The free app shows battery health, live pow
 - **Lifetime Analyzer:** a live history of charge, temperature, voltage, and power, with charts and min/avg/max stats over a selectable range.
 - **iPhone and iPad battery:** read the health and cycle count of a connected device straight from your Mac, over USB or Wi-Fi.
 - **Battery Health History:** a long-term, per-device record of monthly health and cycles, for your Mac and every device you connect, kept for years, with backup and restore.
+- **Battery runway:** a forecast, not just today's number. The wear rate ("down 4% over the last 90 days"), the date your battery is projected to reach 80% health, and a flag when it starts ageing faster than its own trend. Built from the long-term health history, Macs first. No other battery app projects forward or names a date.
 - **Reports and export:** a one-page battery report as PDF or print, and CSV / JSON export of your logged history, for warranty claims, resale, or your own records.
 - **Threshold notifications:** alerts for charge high/low, temperature, and health milestones.
 - **Accessory history and alerts:** a per-device level history for your keyboard, mouse, trackpad, and AirPods, with an estimated time-till-empty, a low-battery alert before they die, and the option to show an accessory's level right in the menu bar.
@@ -106,7 +107,7 @@ whatbattery --help
 Pro from the command line:
 
 ```bash
-whatbattery --report                       # Pro: one-page battery report (current + lifetime)
+whatbattery --report                       # Pro: one-page battery report (current + lifetime + runway forecast)
 whatbattery --export csv --range month     # Pro: export logged history (csv|json, week|month|year|all)
 whatbattery --activate XXXX-XXXX-XXXX-XXXX # validate and store a Pro licence
 whatbattery --licence                      # show current licence status
