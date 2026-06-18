@@ -28,8 +28,23 @@ struct MenuContentView: View {
         .padding(12)
         // One fixed size for both panes so switching to Settings doesn't resize
         // the popover (NSPopover doesn't animate intrinsic SwiftUI size changes).
-        // Height is sized to the taller settings pane.
-        .frame(width: 340, height: 400)
+        // The height grows with the accessory list; Settings absorbs any slack
+        // with its Spacer, so the two panes stay the same height.
+        .frame(width: 340, height: popoverHeight)
+    }
+
+    /// Sized to the main pane: tight on the battery section when no accessories
+    /// are connected, growing a row at a time as they are, and capped so a long
+    /// list scrolls instead of running off-screen. The Settings form fits itself
+    /// to whatever height this gives (see `settingsPane`).
+    private static let popoverMaxHeight: CGFloat = 560
+
+    private var popoverHeight: CGFloat {
+        let batteryPane: CGFloat = 330
+        let accessories = monitor.accessories.isEmpty
+            ? 0
+            : 26 + CGFloat(monitor.accessories.count) * 24
+        return min(Self.popoverMaxHeight, batteryPane + accessories)
     }
 
     // MARK: - Panes
@@ -49,7 +64,21 @@ struct MenuContentView: View {
                     .padding(.vertical, 4)
             }
 
-            Spacer(minLength: 0)
+            if monitor.accessories.isEmpty {
+                Spacer(minLength: 0)
+            } else {
+                Divider()
+                Text("Accessories")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                // Scrolls when the list is long, so the battery header above and
+                // the footer below stay put.
+                ScrollView {
+                    accessoriesList
+                }
+                .frame(maxHeight: .infinity)
+            }
+
             Divider()
             footer
         }
@@ -67,8 +96,9 @@ struct MenuContentView: View {
                 Text("Settings").font(.headline)
                 Spacer()
             }
-            SettingsView(embedded: true)
-            Spacer(minLength: 0)
+            // Fit the form to the popover height (which the accessory list sizes),
+            // so the grouped form scrolls internally instead of clipping.
+            SettingsView(embedded: true, embeddedHeight: popoverHeight - 64)
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }
@@ -125,6 +155,30 @@ struct MenuContentView: View {
             row("Temperature", BatteryFormatter.temperature(snapshot.temperatureCelsius, unit: tempUnit))
             row("Power", powerText(snapshot))
             row("Voltage", BatteryFormatter.voltage(snapshot.voltageMillivolts))
+        }
+    }
+
+    private var accessoriesList: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(monitor.accessories) { accessory in
+                HStack(spacing: 8) {
+                    Image(systemName: AccessoryFormatting.symbol(for: accessory.kind))
+                        .frame(width: 18)
+                        .foregroundStyle(.secondary)
+                    Text(accessory.name)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer(minLength: 8)
+                    if accessory.isAvailable {
+                        Text(AccessoryFormatting.levels(accessory))
+                            .monospacedDigit()
+                    } else {
+                        Text("Battery unavailable")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .font(.callout)
+            }
         }
     }
 

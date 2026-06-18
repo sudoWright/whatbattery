@@ -13,7 +13,7 @@ System Settings rounds battery health to a whole number and hides almost everyth
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![WhatBattery Pro](https://img.shields.io/badge/WhatBattery%20Pro-%C2%A39.99-orange)](https://www.whatbattery.app/#pro)
 
-![WhatBattery menu bar dropdown](src/img/screenshot-menubar.png)
+![WhatBattery menu bar dropdown showing battery health, live power, and connected Bluetooth accessory levels](src/img/screenshot-menubar.png)
 
 ## What it shows
 
@@ -28,6 +28,12 @@ For a connected **iPhone or iPad** (Pro):
 
 - The same health, cycle count, charge, temperature, voltage, and live power, read straight from the device over a cable or Wi-Fi, with no app installed on the device. It uses the same battery node and the same health math as the Mac.
 
+For your **Bluetooth accessories**:
+
+- The live battery level of a connected keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case (L / R / Case). Many third-party devices don't report a level over Bluetooth, so those show "Battery unavailable". This is free.
+
+![WhatBattery Accessories tab showing keyboard, AirPods, and mouse levels with a history chart](src/img/screenshot-accessories.png)
+
 Click the **gear icon** in the dropdown to open Settings, where you can enter a Pro licence key and configure threshold notifications.
 
 ## WhatBattery Pro
@@ -39,6 +45,9 @@ WhatBattery is free and open source. The free app shows battery health, live pow
 - **Battery Health History:** a long-term, per-device record of monthly health and cycles, for your Mac and every device you connect, kept for years, with backup and restore.
 - **Reports and export:** a one-page battery report as PDF or print, and CSV / JSON export of your logged history, for warranty claims, resale, or your own records.
 - **Threshold notifications:** alerts for charge high/low, temperature, and health milestones.
+- **Accessory history and alerts:** a per-device level history for your keyboard, mouse, trackpad, and AirPods, with an estimated time-till-empty, a low-battery alert before they die, and the option to show an accessory's level right in the menu bar.
+
+![WhatBattery showing accessory battery levels in the menu bar](src/img/screenshot-menubar-strip.png)
 
 One-time purchase, works on up to 2 Macs. See [whatbattery.app](https://www.whatbattery.app/#pro) for details.
 
@@ -89,6 +98,7 @@ whatbattery                # human-readable battery summary
 whatbattery --json         # structured JSON, pipe into jq
 whatbattery --watch        # live, refreshes as values change (Ctrl+C to exit)
 whatbattery --idevice      # read a connected iPhone / iPad's battery (Pro)
+whatbattery --accessories  # Bluetooth accessory battery levels (keyboard, mouse, AirPods)
 whatbattery --version
 whatbattery --help
 ```
@@ -121,6 +131,7 @@ WhatBattery reads from Apple's own interfaces. No entitlements, no kernel extens
 | `system_profiler SPPowerDataType` | The battery "Condition" line, which matches System Settings. The IOPowerSources `BatteryHealth` key is not used: it reported "Check Battery" on a healthy battery, so it is unreliable. |
 | `IODeviceTree` / `IOPlatformExpertDevice` / `sysctl` | Marketing model name, regulatory model number, model identifier, chip, and serial. |
 | `MobileDevice.framework` diagnostics relay | For a connected iPhone or iPad, the device's `AppleSmartBattery` node over the lockdown relay (the same path Finder and Xcode use), mapped through the same health math as the Mac. |
+| Bluetooth (`IORegistry` `BatteryPercent` + `system_profiler SPBluetoothDataType`) | Battery levels for connected Bluetooth accessories (keyboard, mouse, trackpad, AirPods). macOS asks for Bluetooth access the first time you open the Accessories tab; it is used only to read these levels locally. |
 
 ## Build from source
 
@@ -170,6 +181,7 @@ The wrapper runs the whole pipeline: bumps the version, builds, signs, notarises
 WhatBattery reads battery and power data locally from your Mac (and from a connected iPhone or iPad over the cable or Wi-Fi). None of it is sent anywhere automatically.
 
 - **No analytics, no telemetry.** The app reads local battery data and nothing else.
+- **Bluetooth:** macOS asks for Bluetooth access the first time you open the Accessories tab. It is used only to read the battery level of your connected accessories, locally. Nothing is sent anywhere, and the rest of the app works without it.
 - **Licence check:** the only network request is a one-time licence validation when you activate Pro.
 - **Update checks:** WhatBattery checks the GitHub Releases API for a newer version. No personal data or hardware info is included.
 

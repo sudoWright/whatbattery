@@ -12,7 +12,7 @@ struct MainWindowView: View {
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
     @State private var selectedTab: Tab = .mac
 
-    private enum Tab: Hashable { case mac, iDevice, history }
+    private enum Tab: Hashable { case mac, iDevice, accessories, history }
 
     private var tempUnit: BatteryFormatter.TemperatureUnit {
         temperatureUnit == "F" ? .fahrenheit : .celsius
@@ -26,12 +26,20 @@ struct MainWindowView: View {
             iDeviceTab
                 .tabItem { Label("iPhone / iPad", systemImage: "iphone") }
                 .tag(Tab.iDevice)
+            accessoriesTab
+                .tabItem { Label("Accessories", systemImage: "dot.radiowaves.left.and.right") }
+                .tag(Tab.accessories)
             historyTab
                 .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
                 .tag(Tab.history)
         }
-        .frame(minWidth: 480, minHeight: 440)
+        .frame(minWidth: 600, minHeight: 440)
         .navigationTitle("WhatBattery")
+        // Start the Bluetooth watcher (and the one-time permission prompt) only
+        // when the user actually opens the Accessories tab.
+        .onChange(of: selectedTab) { _, tab in
+            if tab == .accessories { monitor.startAccessoryWatchingIfNeeded() }
+        }
     }
 
     // MARK: - This Mac
@@ -75,6 +83,31 @@ struct MainWindowView: View {
             }
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    // MARK: - Accessories (free: live levels)
+
+    private var accessoriesTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                AccessoriesCard(accessories: monitor.accessories)
+                Divider()
+                accessoriesProSection
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private var accessoriesProSection: some View {
+        // History + low-battery alerts are Pro and live in the plugins module, so
+        // the builder is nil in the free build, which shows the upsell instead.
+        if proStatus.isUnlocked, let build = PluginRegistry.shared.accessoriesSectionBuilder {
+            build()
+        } else {
+            AccessoriesUpsellCard()
         }
     }
 
@@ -260,6 +293,104 @@ private struct MacIdentity {
             chip: SystemInfo.chip(),
             lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled
         )
+    }
+}
+
+// MARK: - Accessories (free)
+
+private struct AccessoriesCard: View {
+    let accessories: [Accessory]
+
+    var body: some View {
+        if accessories.isEmpty {
+            ContentUnavailableView(
+                "No accessories connected",
+                systemImage: "dot.radiowaves.left.and.right",
+                description: Text("Connect a Bluetooth keyboard, mouse, trackpad, or AirPods to see their battery here. Many third-party devices don't report a level.")
+            )
+            .frame(maxWidth: .infinity, minHeight: 280)
+        } else {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Accessories").font(.headline)
+                ForEach(accessories) { accessory in
+                    row(accessory)
+                    if accessory.id != accessories.last?.id { Divider() }
+                }
+                Text("Accessories report a charge level only, not health or cycles. Levels refresh every couple of minutes.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private func row(_ accessory: Accessory) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            Image(systemName: AccessoryFormatting.symbol(for: accessory.kind))
+                .font(.title3)
+                .foregroundStyle(.secondary)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(accessory.name)
+                if accessory.isAvailable {
+                    Text(AccessoryFormatting.levels(accessory))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                    // Pro: projected time till empty, shown only once the sampler
+                    // has enough history. Read the seam inline (nil in the free
+                    // build, and gated on the licence) rather than capturing it at
+                    // view-init, so it's never a stale snapshot of the registry.
+                    if let seconds = PluginRegistry.shared.accessoryEstimateProvider?(accessory.id) {
+                        Text(AccessoryFormatting.timeToEmpty(seconds))
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                } else {
+                    Text("Battery unavailable")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            if let lowest = accessory.lowestPercent {
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("\(lowest)%")
+                        .font(.title3).monospacedDigit()
+                        .foregroundStyle(levelColor(lowest))
+                    ProgressView(value: Double(lowest), total: 100)
+                        .tint(levelColor(lowest))
+                        .frame(width: 80)
+                }
+            }
+        }
+    }
+
+    private func levelColor(_ percent: Int) -> Color {
+        switch percent {
+        case ..<15: return .red
+        case ..<30: return .orange
+        default: return .green
+        }
+    }
+}
+
+// MARK: - Accessories Pro (locked: upsell)
+
+private struct AccessoriesUpsellCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Accessory history and alerts", systemImage: "lock.fill").font(.headline)
+            Text("Track each accessory's battery over time and get a low-battery alert before your keyboard, mouse, or AirPods die. A WhatBattery Pro feature.")
+                .foregroundStyle(.secondary)
+            Link("Get WhatBattery Pro", destination: URL(string: "https://www.whatbattery.app")!)
+                .font(.callout)
+            Text("Already have a key? Add it in Settings.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

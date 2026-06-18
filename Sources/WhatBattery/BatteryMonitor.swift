@@ -15,9 +15,18 @@ final class BatteryMonitor: ObservableObject {
     /// The current battery snapshot, or nil on a desktop Mac with no battery.
     @Published private(set) var snapshot: BatterySnapshot?
 
+    /// Connected Bluetooth accessories and their battery levels. Refreshed
+    /// immediately on a Bluetooth connect/disconnect event, plus a slow poll to
+    /// keep levels current (the reader runs a `system_profiler` subprocess).
+    @Published private(set) var accessories: [Accessory] = []
+
     private let provider = DarwinSnapshotProvider()
     private var timer: Timer?
+    private var accessoryTimer: Timer?
+    private var accessoryDebounce: Timer?
     private var watcher: PowerSourceWatcher?
+    private var bluetoothWatcher: BluetoothConnectionWatcher?
+    private var bluetoothWatchingStarted = false
     /// The last set of widget-visible values pushed, so we only rewrite + reload
     /// the widget when something the widget shows actually changed.
     private var lastWidgetSignature: String?
@@ -28,10 +37,17 @@ final class BatteryMonitor: ObservableObject {
         refresh()
         startWatching()
         startTimer()
+        refreshAccessories()
+        startAccessoryTimer()
+        // The Bluetooth watcher is started lazily (it triggers the permission
+        // prompt), the first time the user opens the Accessories tab.
     }
 
     deinit {
         timer?.invalidate()
+        accessoryTimer?.invalidate()
+        accessoryDebounce?.invalidate()
+        bluetoothWatcher?.stop()
     }
 
     func refresh() {
@@ -64,6 +80,57 @@ final class BatteryMonitor: ObservableObject {
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
+        }
+    }
+
+    /// Read accessory levels off the main actor (the reader spawns a
+    /// `system_profiler` subprocess), then publish on the main actor.
+    func refreshAccessories() {
+        // The detached child does the blocking read off the main actor; the
+        // surrounding Task is main-actor-isolated (BatteryMonitor is @MainActor),
+        // so the assignment lands back on main without capturing self off-actor.
+        Task { [weak self] in
+            let accessories = await Task.detached(priority: .utility) {
+                AccessoryBatteryReader.readAll()
+            }.value
+            self?.accessories = accessories
+            for hook in PluginRegistry.shared.accessorySampleHooks {
+                hook(accessories)
+            }
+        }
+    }
+
+    /// Bluetooth connect/disconnect events handle a device appearing or going
+    /// away instantly, so this slow poll only has to keep levels fresh and feed
+    /// history (a connected device's % drifts silently, with no event to catch it).
+    private func startAccessoryTimer() {
+        accessoryTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshAccessories() }
+        }
+    }
+
+    /// Start the Bluetooth connect/disconnect watcher and do an immediate read.
+    /// Called when the user first opens the Accessories tab, so the permission
+    /// prompt only appears for users who actually look at accessories. Idempotent.
+    func startAccessoryWatchingIfNeeded() {
+        refreshAccessories()
+        guard !bluetoothWatchingStarted else { return }
+        bluetoothWatchingStarted = true
+        bluetoothWatcher = BluetoothConnectionWatcher { [weak self] in
+            // IOBluetooth delivers this on its own coordinator queue, not the main
+            // run loop, so hop to the main actor rather than asserting we're on it.
+            Task { @MainActor in self?.scheduleAccessoryRefresh() }
+        }
+        bluetoothWatcher?.start()
+    }
+
+    /// Debounce a burst of connect/disconnect events (several devices at once, or
+    /// a reconnect flap) into a single refresh, and give the device a moment to
+    /// register before we read.
+    private func scheduleAccessoryRefresh() {
+        accessoryDebounce?.invalidate()
+        accessoryDebounce = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshAccessories() }
         }
     }
 }

@@ -9,6 +9,9 @@ struct SettingsView: View {
     /// When embedded in the menu bar popover, drop the fixed window frame and let
     /// the content size to the popover.
     var embedded = false
+    /// Height to give the embedded form, so it matches the popover (which is
+    /// sized by the accessory list) and scrolls internally rather than clipping.
+    var embeddedHeight: CGFloat = 340
 
     var body: some View {
         Form {
@@ -25,6 +28,6 @@ struct SettingsView: View {
         .formStyle(.grouped)
         // Embedded in the popover: a bounded height that gives the settings room
         // and lets the grouped form scroll if the sections overflow.
-        .frame(width: embedded ? nil : 360, height: embedded ? 340 : 280)
+        .frame(width: embedded ? nil : 360, height: embedded ? embeddedHeight : 280)
     }
 }

@@ -67,10 +67,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setUpStatusItem()
         setUpPopover()
 
-        // The icon is static; the charge percentage beside it tracks live state.
-        monitor.$snapshot
-            .receive(on: RunLoop.main)
-            .sink { [weak self] snapshot in self?.updateStatusTitle(snapshot) }
+        // The icon is static; the title (Mac charge, plus any Pro accessory
+        // readout) tracks live state. Rebuild it when the battery, the accessory
+        // list, the Pro unlock state, or the menu bar settings change.
+        let rebuild: () -> Void = { [weak self] in self?.refreshStatusTitle() }
+        monitor.$snapshot.receive(on: RunLoop.main).sink { _ in rebuild() }.store(in: &cancellables)
+        monitor.$accessories.receive(on: RunLoop.main).sink { _ in rebuild() }.store(in: &cancellables)
+        PluginRegistry.shared.proStatus.$isUnlocked.receive(on: RunLoop.main).sink { _ in rebuild() }.store(in: &cancellables)
+        // Debounced: a single Settings save can write several keys at once
+        // (enabled + mode + pinned), so coalesce the burst into one rebuild.
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
+            .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
+            .sink { _ in rebuild() }
             .store(in: &cancellables)
     }
 
@@ -85,20 +93,74 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.image = icon
         button.imagePosition = .imageLeading
         button.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize(for: .small), weight: .regular)
-        updateStatusTitle(monitor.snapshot)
+        refreshStatusTitle()
         button.target = self
         button.action = #selector(statusItemClicked(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
     }
 
-    /// Show the current charge percentage next to the icon. Empty on a Mac with
-    /// no battery, leaving just the glyph.
-    private func updateStatusTitle(_ snapshot: BatterySnapshot?) {
-        guard let snapshot else {
-            statusItem?.button?.title = ""
-            return
+    /// Build the status title: the Mac's charge percentage, plus (Pro, when
+    /// enabled in Settings) one or all connected accessories as "icon NN%". Empty
+    /// on a Mac with no battery and no accessory to show, leaving just the glyph.
+    private func refreshStatusTitle() {
+        guard let button = statusItem?.button else { return }
+        let font = button.font ?? .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize(for: .small), weight: .regular)
+        let title = NSMutableAttributedString()
+
+        if let snapshot = monitor.snapshot {
+            title.append(NSAttributedString(string: " \(snapshot.currentChargePercent)%"))
         }
-        statusItem?.button?.title = " \(snapshot.currentChargePercent)%"
+
+        for item in menuBarAccessoryItems() {
+            title.append(NSAttributedString(string: title.length == 0 ? " " : "  "))
+            title.append(symbolAttachment(item.symbol, font: font))
+            title.append(NSAttributedString(string: " \(item.percent)%"))
+        }
+
+        title.addAttributes(
+            [.font: font, .foregroundColor: NSColor.labelColor],
+            range: NSRange(location: 0, length: title.length)
+        )
+        button.attributedTitle = title
+    }
+
+    /// The accessory readouts to show in the menu bar, honoring the Pro gate and
+    /// the user's Settings choices. Empty unless Pro is unlocked and the feature
+    /// is switched on. A pinned device that is disconnected (or reports nothing)
+    /// simply drops out.
+    private func menuBarAccessoryItems() -> [(symbol: String, percent: Int)] {
+        guard PluginRegistry.shared.proStatus.isUnlocked else { return [] }
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: MenuBarAccessoryDefaults.enabledKey) else { return [] }
+
+        let available = monitor.accessories.filter { $0.isAvailable }
+        switch MenuBarAccessoryDefaults.mode(defaults) {
+        case .all:
+            return available.compactMap { accessory in
+                accessory.lowestPercent.map { (AccessoryFormatting.symbol(for: accessory.kind), $0) }
+            }
+        case .one:
+            let pinnedId = defaults.string(forKey: MenuBarAccessoryDefaults.pinnedIdKey) ?? ""
+            guard let accessory = available.first(where: { $0.id == pinnedId }),
+                  let percent = accessory.lowestPercent else { return [] }
+            return [(AccessoryFormatting.symbol(for: accessory.kind), percent)]
+        }
+    }
+
+    /// A template-image text attachment for an accessory's SF Symbol, sized to and
+    /// vertically centered on the menu bar font so it sits on the baseline.
+    private func symbolAttachment(_ symbolName: String, font: NSFont) -> NSAttributedString {
+        let config = NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .regular)
+        guard let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)?
+            .withSymbolConfiguration(config) else {
+            return NSAttributedString(string: "")
+        }
+        image.isTemplate = true
+        let attachment = NSTextAttachment()
+        attachment.image = image
+        let size = image.size
+        attachment.bounds = CGRect(x: 0, y: (font.capHeight - size.height) / 2, width: size.width, height: size.height)
+        return NSAttributedString(attachment: attachment)
     }
 
     @objc private func statusItemClicked(_ sender: NSStatusBarButton) {

@@ -37,6 +37,13 @@ public final class PluginRegistry {
         sampleHooks.append(sampleHook)
     }
 
+    // Called by the monitor whenever the accessory list refreshes (slow cadence).
+    // The Pro module registers one to record history and fire low-battery alerts.
+    public private(set) var accessorySampleHooks: [@Sendable ([Accessory]) -> Void] = []
+    public func register(accessorySampleHook: @escaping @Sendable ([Accessory]) -> Void) {
+        accessorySampleHooks.append(accessorySampleHook)
+    }
+
     // Rows added to the menu bar dropdown footer.
     public private(set) var menuItems: [PluginMenuItem] = []
     public func register(menuItem: PluginMenuItem) {
@@ -69,6 +76,23 @@ public final class PluginRegistry {
     public private(set) var healthHistorySectionBuilder: (@MainActor () -> AnyView)?
     public func register(healthHistorySection: @escaping @MainActor () -> AnyView) {
         healthHistorySectionBuilder = healthHistorySection
+    }
+
+    // The accessory history/alerts view injected into the main window's
+    // Accessories tab below the free live list, gated by licence. Nil in the free
+    // build, so the window shows a Pro upsell there instead.
+    public private(set) var accessoriesSectionBuilder: (@MainActor () -> AnyView)?
+    public func register(accessoriesSection: @escaping @MainActor () -> AnyView) {
+        accessoriesSectionBuilder = accessoriesSection
+    }
+
+    // A Pro discharge estimate (seconds until empty) for an accessory id, derived
+    // from its recorded history. Nil in the free build, and returns nil per-id
+    // until there's enough history (or while locked), so the free live card shows
+    // the "time till empty" line only when Pro has a real figure.
+    public private(set) var accessoryEstimateProvider: (@MainActor (String) -> TimeInterval?)?
+    public func register(accessoryEstimateProvider provider: @escaping @MainActor (String) -> TimeInterval?) {
+        accessoryEstimateProvider = provider
     }
 
     // CLI subcommands.

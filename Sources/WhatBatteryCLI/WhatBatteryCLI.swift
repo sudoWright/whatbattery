@@ -41,6 +41,11 @@ struct WhatBatteryCLI {
             return
         }
 
+        if args.contains("--accessories") {
+            runAccessories(json: args.contains("--json"))
+            return
+        }
+
         if args.contains("--json") {
             guard let snapshot = provider.currentSnapshot() else { exitNoBattery(provider) }
             print(encodeJSON(snapshot))
@@ -66,7 +71,7 @@ struct WhatBatteryCLI {
 
 @MainActor
 private func rejectUnknownFlags(_ args: [String]) {
-    var known: Set<String> = ["--json", "--watch", "--idevice", "--version", "--help", "-h"]
+    var known: Set<String> = ["--json", "--watch", "--idevice", "--accessories", "--version", "--help", "-h"]
     for command in PluginRegistry.shared.cliCommands {
         known.formUnion(command.flagNames)
     }
@@ -125,6 +130,24 @@ private func runIDevice(json: Bool) {
     } catch {
         errln("whatbattery: \(error)")
         exit(2)
+    }
+}
+
+/// List Bluetooth accessory battery levels (keyboard, mouse, trackpad, AirPods).
+/// Devices that report no level show as "battery unavailable".
+private func runAccessories(json: Bool) {
+    let accessories = AccessoryBatteryReader.readAll()
+    if json {
+        print(encodeJSON(accessories))
+        return
+    }
+    if accessories.isEmpty {
+        print("No Bluetooth accessories connected.")
+        return
+    }
+    for accessory in accessories {
+        let level = accessory.isAvailable ? accessory.levelSummary : "battery unavailable"
+        print("\(accessory.name): \(level)")
     }
 }
 
@@ -194,6 +217,7 @@ private func printUsage() {
       whatbattery --json     Machine-readable snapshot (JSON)
       whatbattery --watch    Live-updating summary (Ctrl-C to stop)
       whatbattery --idevice  Battery of a tethered/paired iPhone or iPad (spike)
+      whatbattery --accessories  Bluetooth accessory battery levels
       whatbattery --version  Print version
       whatbattery --help     This help
     """
