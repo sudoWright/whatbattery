@@ -30,17 +30,19 @@ public final class PluginRegistry {
         launchHooks.append(launchHook)
     }
 
-    // Called by the monitor on every refresh. The history plugin registers one
+    // Called by the monitor on every refresh, on the main actor: the type now
+    // says so, so an off-actor caller fails to compile instead of trapping at
+    // runtime inside a hook's assumeIsolated. The history plugin registers one
     // and throttles internally to the sampling cadence.
-    public private(set) var sampleHooks: [@Sendable (BatterySnapshot) -> Void] = []
-    public func register(sampleHook: @escaping @Sendable (BatterySnapshot) -> Void) {
+    public private(set) var sampleHooks: [@MainActor @Sendable (BatterySnapshot) -> Void] = []
+    public func register(sampleHook: @escaping @MainActor @Sendable (BatterySnapshot) -> Void) {
         sampleHooks.append(sampleHook)
     }
 
     // Called by the monitor whenever the accessory list refreshes (slow cadence).
     // The Pro module registers one to record history and fire low-battery alerts.
-    public private(set) var accessorySampleHooks: [@Sendable ([Accessory]) -> Void] = []
-    public func register(accessorySampleHook: @escaping @Sendable ([Accessory]) -> Void) {
+    public private(set) var accessorySampleHooks: [@MainActor @Sendable ([Accessory]) -> Void] = []
+    public func register(accessorySampleHook: @escaping @MainActor @Sendable ([Accessory]) -> Void) {
         accessorySampleHooks.append(accessorySampleHook)
     }
 
@@ -69,6 +71,15 @@ public final class PluginRegistry {
     public private(set) var chargingSectionBuilder: (@MainActor () -> AnyView)?
     public func register(chargingSection: @escaping @MainActor () -> AnyView) {
         chargingSectionBuilder = chargingSection
+    }
+
+    // The per-app power ("What's using power") view injected into the main
+    // window's This Mac tab below the Overview, gated by licence. Nil in the
+    // free build (the public mirror's no-op bootstrap never registers it), so
+    // the window shows a Pro upsell instead.
+    public private(set) var appPowerSectionBuilder: (@MainActor () -> AnyView)?
+    public func register(appPowerSection: @escaping @MainActor () -> AnyView) {
+        appPowerSectionBuilder = appPowerSection
     }
 
     // The iPhone/iPad view injected into the main window's iDevice tab, gated by

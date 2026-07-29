@@ -4,7 +4,10 @@ import WhatBatteryDarwinBackend
 import WhatBatteryAppKit
 import WhatBatteryPlugins
 
-let cliVersion = "0.1.0-dev"
+// Drives --version, the summary header and the usage text. AppInfo reads the
+// shipped Info.plist (walking up from the nested Contents/Helpers binary), so
+// this tracks the release instead of drifting from it as a literal did.
+let cliVersion = AppInfo.version
 
 @main
 struct WhatBatteryCLI {
@@ -42,7 +45,7 @@ struct WhatBatteryCLI {
         }
 
         if args.contains("--accessories") {
-            runAccessories(json: args.contains("--json"))
+            await runAccessories(json: args.contains("--json"))
             return
         }
 
@@ -99,8 +102,8 @@ private func runWatch(_ provider: DarwinSnapshotProvider) async {
     }
 }
 
-// SPIKE: read a tethered/paired iPhone or iPad's battery (the coconutBattery
-// "iPhone/iPad" view). Shells to pymobiledevice3; see IDeviceBatteryReader.
+// Read a tethered/paired iPhone or iPad's battery over the native
+// MobileDevice.framework path; see IDeviceBatteryReader.
 private func runIDevice(json: Bool) {
     do {
         let result = try IDeviceBatteryReader.readAll()
@@ -134,9 +137,15 @@ private func runIDevice(json: Bool) {
 }
 
 /// List Bluetooth accessory battery levels (keyboard, mouse, trackpad, AirPods).
-/// Devices that report no level show as "battery unavailable".
-private func runAccessories(json: Bool) {
-    let accessories = AccessoryBatteryReader.readAll()
+/// Devices that report no level show as "battery unavailable". BLE accessories
+/// that only publish battery over GATT are filled from that service, matching
+/// the app; without Bluetooth permission the GATT half quietly contributes
+/// nothing.
+private func runAccessories(json: Bool) async {
+    let accessories = AccessoryBLEMerge.merge(
+        AccessoryBatteryReader.readAll(),
+        bleLevels: await BLEBatteryReader.readLevels()
+    )
     if json {
         print(encodeJSON(accessories))
         return
@@ -171,7 +180,7 @@ private func deviceLabel(_ d: IDeviceBatteryReader.DeviceInfo, connection: Strin
 private func exitNoBattery(_ provider: DarwinSnapshotProvider) -> Never {
     errln("No battery on this Mac (desktop, or AppleSmartBattery unavailable).")
     if let input = provider.systemPowerInput() {
-        print(String(format: "DC-in power: %.1f W (%.2f V, %.2f A)", input.watts, input.volts, input.amps))
+        print("DC-in power: " + BatteryFormatter.dcInPower(watts: input.watts, volts: input.volts, amps: input.amps))
     }
     exit(2)
 }
@@ -185,9 +194,7 @@ private func renderSummary(_ snapshot: BatterySnapshot) -> String {
     lines.append(pad("Charge") + BatteryFormatter.chargeLine(snapshot))
     lines.append(pad("Cycles") + "\(snapshot.cycleCount)" + (snapshot.designCycleCount > 0 ? " (design \(snapshot.designCycleCount))" : ""))
     lines.append(pad("Temperature") + BatteryFormatter.temperature(snapshot.temperatureCelsius))
-    var powerLine = BatteryFormatter.power(snapshot.powerWatts)
-    if let adapter = snapshot.adapter?.label { powerLine += "  (\(adapter))" }
-    lines.append(pad("Power") + powerLine)
+    lines.append(pad("Power") + BatteryFormatter.powerLine(snapshot))
     lines.append(pad("Voltage") + BatteryFormatter.voltage(snapshot.voltageMillivolts))
     return lines.joined(separator: "\n")
 }
@@ -216,7 +223,7 @@ private func printUsage() {
       whatbattery            Battery summary
       whatbattery --json     Machine-readable snapshot (JSON)
       whatbattery --watch    Live-updating summary (Ctrl-C to stop)
-      whatbattery --idevice  Battery of a tethered/paired iPhone or iPad (spike)
+      whatbattery --idevice  Battery of a tethered/paired iPhone or iPad
       whatbattery --accessories  Bluetooth accessory battery levels
       whatbattery --version  Print version
       whatbattery --help     This help

@@ -34,6 +34,38 @@ public enum BatteryFormatter {
         return String(format: "%@%.1f W", sign, abs(watts))
     }
 
+    /// The full "Power" line: the live wattage, why it is zero when it is, and
+    /// the adapter in brackets.
+    ///
+    /// A bare "0.0 W  (100W pd charger)" is correct (a full battery draws
+    /// nothing) but reads as a fault sitting next to a 100W label, so a zero
+    /// reading on AC says what it means instead. Shared by the window, the
+    /// popover, the CLI, the report and the iDevice view, which all used to
+    /// build this line separately.
+    public static func powerLine(_ snapshot: BatterySnapshot, adapterSeparator: String = "  ") -> String {
+        var text = power(snapshot.powerWatts)
+        // power() prints one decimal place, so anything under 0.05 shows as 0.0.
+        if abs(snapshot.powerWatts) < 0.05 {
+            switch snapshot.chargingState {
+            case .full: text += ", fully charged"
+            case .acNoCharge: text += ", not charging"
+            case .charging, .discharging: break
+            }
+        }
+        if let adapter = snapshot.adapter?.label {
+            text += "\(adapterSeparator)(\(adapter))"
+        }
+        return text
+    }
+
+    /// The desktop DC-in line, e.g. "47.3 W (12.00 V, 3.94 A)". Shared by the
+    /// CLI's no-battery fallback and the GUI's desktop power view so the two
+    /// never drift. Raw doubles rather than the SMC struct because Core cannot
+    /// see the Darwin backend.
+    public static func dcInPower(watts: Double, volts: Double, amps: Double) -> String {
+        String(format: "%.1f W (%.2f V, %.2f A)", watts, volts, amps)
+    }
+
     public static func voltage(_ millivolts: Int) -> String {
         String(format: "%.2f V", Double(millivolts) / 1000)
     }
