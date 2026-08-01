@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connect an iPhone or iPad · WhatBattery</title>
+    <meta name="description" content="Connect an iPhone or iPad to WhatBattery over USB or Wi-Fi and troubleshoot device discovery from your Mac." />
+    <link rel="canonical" href="https://www.whatbattery.app/docs/iphone-ipad/" />
+    <link rel="icon" href="/img/favicon.ico?v=51cb979ea5b4" sizes="any" />
+    <link rel="icon" href="/img/icon.png?v=6628f904ad22" type="image/png" />
+    <link rel="apple-touch-icon" href="/img/icon.png?v=6628f904ad22" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.whatbattery.app/docs/iphone-ipad/" />
+    <meta property="og:title" content="Connect an iPhone or iPad · WhatBattery" />
+    <meta property="og:description" content="Connect an iPhone or iPad to WhatBattery over USB or Wi-Fi and troubleshoot device discovery from your Mac." />
+    <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Connect an iPhone or iPad · WhatBattery" />
+    <meta name="twitter:description" content="Connect an iPhone or iPad to WhatBattery over USB or Wi-Fi and troubleshoot device discovery from your Mac." />
+    <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
+
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css?v=049d00fb9cba" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <div class="wrap nav-inner">
+        <a class="brand" href="/" aria-label="WhatBattery home">
+          <img class="mark" src="/img/icon.png?v=6628f904ad22" alt="" aria-hidden="true" width="30" height="30" />
+          <span>WhatBattery</span>
+        </a>
+        <div class="nav-links">
+          <a href="/features/">Features</a>
+          <a href="/pro/">Pro</a>
+          <a href="/docs/">Guides</a>
+          <a href="/cli/">CLI</a>
+          <a href="/blog/">Blog</a>
+          <a href="https://github.com/darrylmorley/whatbattery">GitHub</a>
+          <a class="button nav-cta" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download free</a>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main">
+
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/docs/">Guides</a><span>/</span><span>iPhone and iPad</span></nav><span class="section-tag">Connected-device guide</span><h1>Pair once over a cable. Read later over USB or Wi-Fi.</h1><p class="lede">WhatBattery Pro uses the same trusted connection Finder uses. No app or account is required on the iPhone or iPad.</p></div></header>
+
+<section class="prose-section"><div class="wrap prose">
+  <h2>1. Trust the Mac</h2>
+  <ol><li>Connect the iPhone or iPad to the Mac with a data-capable cable.</li><li>Unlock the device.</li><li>Tap <strong>Trust</strong> when the device asks whether to trust the computer.</li><li>Enter the device passcode.</li></ol>
+  <p>The first pairing cannot be completed over Wi-Fi.</p>
+
+  <h2>2. Confirm the device in Finder</h2>
+  <p>Open Finder and select the device in the sidebar. If it does not appear, open Finder Settings, choose Sidebar, and make sure “CDs, DVDs and iOS Devices” is enabled.</p>
+
+  <h2>3. Enable Wi-Fi access</h2>
+  <ol><li>With the device selected in Finder, open the General tab.</li><li>Enable <strong>Show this iPhone when on Wi-Fi</strong> or the equivalent iPad option.</li><li>Choose Apply.</li><li>Keep the Mac and device on the same Wi-Fi network.</li></ol>
+
+  <h2>4. Open WhatBattery</h2>
+  <p>Open the iPhone / iPad tab. Connected devices appear automatically. If more than one is available, use the device picker to switch between them.</p>
+  <p>WhatBattery can show health, cycle count, charge, temperature, voltage, time remaining when reported, and live power. Long-term health history is recorded while the device is available.</p>
+
+  <h2>Troubleshooting</h2>
+  <h3>The device does not appear</h3>
+  <ul><li>Unlock it and reconnect the cable.</li><li>Try another cable or Mac port; some cables carry power but no data.</li><li>Confirm that Finder can see the device first.</li><li>Confirm that both devices are on the same Wi-Fi network for wireless access.</li><li>Reconnect briefly over USB to wake the pairing.</li></ul>
+
+  <h3>The device appears as “Battery not readable”</h3>
+  <p>Apple's diagnostics fields are private and can change between iOS releases. WhatBattery validates the capacities and health band before showing them. If the data is missing or implausible, it reports the battery as unreadable instead of displaying a misleading number.</p>
+
+  <div class="callout"><strong>Privacy:</strong> the reading travels directly between the device and your Mac. It is not uploaded by WhatBattery. See the <a href="/docs/privacy/">privacy and permissions guide</a> for every network request the app can make.</div>
+</div></section>
+
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div class="footer-brand">
+          <a class="brand footer-logo" href="/">
+            <img class="mark" src="/img/icon.png?v=6628f904ad22" alt="" aria-hidden="true" width="30" height="30" />
+            <span>WhatBattery</span>
+          </a>
+          <p>Know your battery's real health, live power use, and where it is heading.</p>
+          <p class="footer-small">A <a href="https://www.bitmoor.co.uk">Bitmoor</a> product by <a href="https://github.com/darrylmorley">Darryl Morley</a>.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <a href="/features/">Features</a>
+          <a href="/pro/">WhatBattery Pro</a>
+          <a href="/cli/">CLI</a>
+          <a href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download</a>
+        </div>
+        <div>
+          <h2>Resources</h2>
+          <a href="/docs/">Guides</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/blog/">Blog</a>
+          <a href="/press/">Press</a>
+          <a href="https://github.com/darrylmorley/whatbattery">Source on GitHub</a>
+        </div>
+        <div>
+          <h2>Family</h2>
+          <a href="https://www.whatcable.uk">WhatCable</a>
+          <a href="https://www.whatport.app">WhatPort</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+      </div>
+      <div class="wrap footer-bottom">
+        <span>MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>Apple Silicon · macOS 14+</span>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var buttons = document.querySelectorAll("[data-buy-pro]");
+        var errorSlots = document.querySelectorAll("[data-buy-error]");
+        buttons.forEach(function (button) {
+          var originalHTML = button.innerHTML;
+          button.addEventListener("click", async function () {
+            buttons.forEach(function (candidate) { candidate.disabled = true; });
+            button.textContent = "Starting secure checkout…";
+            errorSlots.forEach(function (slot) { slot.hidden = true; slot.textContent = ""; });
+            try {
+              var res = await fetch("https://www.whatbattery.app/api/checkout", { method: "POST" });
+              var data = await res.json();
+              if (res.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                throw new Error(data.error || "Could not start checkout. Please try again.");
+              }
+            } catch (err) {
+              errorSlots.forEach(function (slot) { slot.textContent = err.message || "Could not start checkout. Please try again."; slot.hidden = false; });
+              buttons.forEach(function (candidate) { candidate.disabled = false; });
+              button.innerHTML = originalHTML;
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

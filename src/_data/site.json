@@ -1,9 +1,10 @@
 {
   "name": "WhatBattery",
-  "tagline": "See your Mac, iPhone, and iPad's true battery health, live power, charging analysis, and a replacement forecast. Read-only and open source.",
+  "tagline": "Know your Mac, iPhone, and iPad's real battery health, live power use, and where each battery is heading. Read-only and open source.",
   "domain": "whatbattery.app",
   "url": "https://www.whatbattery.app",
   "repo": "https://github.com/darrylmorley/whatbattery",
   "releases": "https://github.com/darrylmorley/whatbattery/releases",
-  "worker": "https://www.whatbattery.app"
+  "worker": "https://www.whatbattery.app",
+  "download": "https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip"
 }

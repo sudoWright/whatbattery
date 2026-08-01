@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>How to read an iPhone battery from your Mac · WhatBattery</title>
+    <meta name="description" content="Learn how a trusted Mac can read an iPhone or iPad battery over USB or Wi-Fi, what information is available, and why no device-side app is needed." />
+    <link rel="canonical" href="https://www.whatbattery.app/blog/iphone-battery-health-from-mac/" />
+    <link rel="icon" href="/img/favicon.ico?v=51cb979ea5b4" sizes="any" />
+    <link rel="icon" href="/img/icon.png?v=6628f904ad22" type="image/png" />
+    <link rel="apple-touch-icon" href="/img/icon.png?v=6628f904ad22" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.whatbattery.app/blog/iphone-battery-health-from-mac/" />
+    <meta property="og:title" content="How to read an iPhone battery from your Mac · WhatBattery" />
+    <meta property="og:description" content="Learn how a trusted Mac can read an iPhone or iPad battery over USB or Wi-Fi, what information is available, and why no device-side app is needed." />
+    <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="How to read an iPhone battery from your Mac · WhatBattery" />
+    <meta name="twitter:description" content="Learn how a trusted Mac can read an iPhone or iPad battery over USB or Wi-Fi, what information is available, and why no device-side app is needed." />
+    <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
+
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css?v=049d00fb9cba" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <div class="wrap nav-inner">
+        <a class="brand" href="/" aria-label="WhatBattery home">
+          <img class="mark" src="/img/icon.png?v=6628f904ad22" alt="" aria-hidden="true" width="30" height="30" />
+          <span>WhatBattery</span>
+        </a>
+        <div class="nav-links">
+          <a href="/features/">Features</a>
+          <a href="/pro/">Pro</a>
+          <a href="/docs/">Guides</a>
+          <a href="/cli/">CLI</a>
+          <a href="/blog/">Blog</a>
+          <a href="https://github.com/darrylmorley/whatbattery">GitHub</a>
+          <a class="button nav-cta" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download free</a>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main">
+
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/blog/">Blog</a><span>/</span><span>iPhone battery from Mac</span></nav><span class="section-tag">iPhone and iPad</span><h1>How to read an iPhone battery from your Mac.</h1><p class="lede">A trusted Finder connection can expose more battery detail than a normal iOS app, over a cable or Wi-Fi.</p></div></header>
+
+<article class="prose-section"><div class="wrap prose">
+  <h2>Why use the Mac?</h2><p>iOS already shows battery health in Settings on supported devices. The Mac becomes useful when you want the raw capacity, cycle count, temperature, voltage, live power, or one history that also includes the Mac and iPad.</p><p>A normal sandboxed iOS app cannot read all of those private battery fields. A trusted Mac, however, already has a diagnostics relationship with the device through Finder.</p>
+  <h2>The one-time trust step</h2><p>Connect the device with a data-capable cable, unlock it, and tap Trust. This creates the pairing used by Finder and other Apple development tools. The first pairing cannot be completed wirelessly.</p>
+  <h2>Reading over Wi-Fi</h2><p>In Finder, select the device, open the General tab, enable “Show this iPhone when on Wi-Fi,” and choose Apply. When the Mac and device are on the same network and the device is available, the trusted connection can work without the cable.</p>
+  <h2>What WhatBattery can show</h2><p><a href="/features/iphone-ipad/">WhatBattery Pro's connected-device view</a> maps the device battery into the same model used for the Mac: health, cycle count, charge, temperature, voltage, live power, and time remaining when the device reports it.</p><p>It also records long-term health and cycle history while the device is available, which makes it possible to compare more than one snapshot.</p>
+  <h2>The compatibility trade-off</h2><p>The diagnostic relay is an undocumented Apple interface. Its fields may change between iOS versions. A responsible reader should validate the returned capacities and health range rather than assuming every dictionary is still shaped the same way.</p><p>WhatBattery reports “Battery not readable” when the response is missing or implausible. That is less exciting than inventing a number and much more useful.</p>
+  <div class="callout">Follow the <a href="/docs/iphone-ipad/">complete iPhone and iPad connection guide</a> for setup and troubleshooting.</div>
+</div></article>
+
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div class="footer-brand">
+          <a class="brand footer-logo" href="/">
+            <img class="mark" src="/img/icon.png?v=6628f904ad22" alt="" aria-hidden="true" width="30" height="30" />
+            <span>WhatBattery</span>
+          </a>
+          <p>Know your battery's real health, live power use, and where it is heading.</p>
+          <p class="footer-small">A <a href="https://www.bitmoor.co.uk">Bitmoor</a> product by <a href="https://github.com/darrylmorley">Darryl Morley</a>.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <a href="/features/">Features</a>
+          <a href="/pro/">WhatBattery Pro</a>
+          <a href="/cli/">CLI</a>
+          <a href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download</a>
+        </div>
+        <div>
+          <h2>Resources</h2>
+          <a href="/docs/">Guides</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/blog/">Blog</a>
+          <a href="/press/">Press</a>
+          <a href="https://github.com/darrylmorley/whatbattery">Source on GitHub</a>
+        </div>
+        <div>
+          <h2>Family</h2>
+          <a href="https://www.whatcable.uk">WhatCable</a>
+          <a href="https://www.whatport.app">WhatPort</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+      </div>
+      <div class="wrap footer-bottom">
+        <span>MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>Apple Silicon · macOS 14+</span>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var buttons = document.querySelectorAll("[data-buy-pro]");
+        var errorSlots = document.querySelectorAll("[data-buy-error]");
+        buttons.forEach(function (button) {
+          var originalHTML = button.innerHTML;
+          button.addEventListener("click", async function () {
+            buttons.forEach(function (candidate) { candidate.disabled = true; });
+            button.textContent = "Starting secure checkout…";
+            errorSlots.forEach(function (slot) { slot.hidden = true; slot.textContent = ""; });
+            try {
+              var res = await fetch("https://www.whatbattery.app/api/checkout", { method: "POST" });
+              var data = await res.json();
+              if (res.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                throw new Error(data.error || "Could not start checkout. Please try again.");
+              }
+            } catch (err) {
+              errorSlots.forEach(function (slot) { slot.textContent = err.message || "Could not start checkout. Please try again."; slot.hidden = false; });
+              buttons.forEach(function (candidate) { candidate.disabled = false; });
+              button.innerHTML = originalHTML;
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

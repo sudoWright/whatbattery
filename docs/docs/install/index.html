@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Install WhatBattery · WhatBattery</title>
+    <meta name="description" content="Download and install WhatBattery on an Apple Silicon Mac using a signed release or Homebrew, then keep it updated." />
+    <link rel="canonical" href="https://www.whatbattery.app/docs/install/" />
+    <link rel="icon" href="/img/favicon.ico?v=51cb979ea5b4" sizes="any" />
+    <link rel="icon" href="/img/icon.png?v=6628f904ad22" type="image/png" />
+    <link rel="apple-touch-icon" href="/img/icon.png?v=6628f904ad22" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.whatbattery.app/docs/install/" />
+    <meta property="og:title" content="Install WhatBattery · WhatBattery" />
+    <meta property="og:description" content="Download and install WhatBattery on an Apple Silicon Mac using a signed release or Homebrew, then keep it updated." />
+    <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Install WhatBattery · WhatBattery" />
+    <meta name="twitter:description" content="Download and install WhatBattery on an Apple Silicon Mac using a signed release or Homebrew, then keep it updated." />
+    <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
+
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css?v=049d00fb9cba" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <div class="wrap nav-inner">
+        <a class="brand" href="/" aria-label="WhatBattery home">
+          <img class="mark" src="/img/icon.png?v=6628f904ad22" alt="" aria-hidden="true" width="30" height="30" />
+          <span>WhatBattery</span>
+        </a>
+        <div class="nav-links">
+          <a href="/features/">Features</a>
+          <a href="/pro/">Pro</a>
+          <a href="/docs/">Guides</a>
+          <a href="/cli/">CLI</a>
+          <a href="/blog/">Blog</a>
+          <a href="https://github.com/darrylmorley/whatbattery">GitHub</a>
+          <a class="button nav-cta" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download free</a>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main">
+
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/docs/">Guides</a><span>/</span><span>Install</span></nav><span class="section-tag">Installation guide</span><h1>Download, drag, and open.</h1><p class="lede">WhatBattery is signed with a Developer ID and notarised by Apple. Choose the direct app download or Homebrew.</p><div class="actions"><a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download the latest release</a><a class="button secondary" href="#homebrew">Use Homebrew</a></div></div></header>
+
+<section class="prose-section"><div class="wrap prose">
+  <h2>Before you install</h2>
+  <ul><li>Apple Silicon Mac: M1 or later.</li><li>macOS 14 Sonoma or later.</li><li>No administrator helper, kernel extension, or root access.</li></ul>
+
+  <h2>Direct download</h2>
+  <ol><li><a href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download the latest WhatBattery.zip</a>.</li><li>Open the zip file.</li><li>Drag <strong>WhatBattery.app</strong> into the Applications folder.</li><li>Open WhatBattery from Applications. The battery icon appears in the menu bar.</li></ol>
+  <div class="callout"><strong>No Gatekeeper workaround is required.</strong> Release builds are Developer ID signed, Apple-notarised, and stapled. If macOS reports otherwise, confirm that the file came from the official release link.</div>
+
+  <h2 id="homebrew">Install with Homebrew</h2>
+  <p>The cask installs the menu bar app and puts the bundled <code>whatbattery</code> command on your PATH.</p>
+  <pre><code>brew install --cask darrylmorley/whatbattery/whatbattery</code></pre>
+  <p>Upgrade later with:</p>
+  <pre><code>brew upgrade --cask whatbattery</code></pre>
+
+  <h2>First launch</h2>
+  <p>The Mac overview needs no special permission. WhatBattery reads battery and power information available to your user account.</p>
+  <p>macOS asks for Bluetooth access only when you open the Accessories tab. This is used to read local accessory battery levels. You can decline it and continue using the rest of the app.</p>
+
+  <h2>Automatic update checks</h2>
+  <p>WhatBattery checks the GitHub Releases API at launch and every six hours while running, then shows an in-app banner when a newer version is available. No battery or hardware data is included in the request. Update notifications can be disabled in Settings.</p>
+
+  <h2>Why it is not in the Mac App Store</h2>
+  <p>The App Sandbox blocks the low-level IOKit and SMC access used for live power and detailed battery readings. Reading a connected iPhone or iPad also uses a private framework that App Store rules do not allow. Direct Developer ID distribution preserves those features while still using Apple's signing and notarisation checks.</p>
+
+  <h2>Next steps</h2>
+  <ul><li><a href="/docs/iphone-ipad/">Connect an iPhone or iPad</a>.</li><li><a href="/docs/privacy/">Understand permissions and privacy</a>.</li><li><a href="/cli/">Try the command-line interface</a>.</li></ul>
+</div></section>
+
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div class="footer-brand">
+          <a class="brand footer-logo" href="/">
+            <img class="mark" src="/img/icon.png?v=6628f904ad22" alt="" aria-hidden="true" width="30" height="30" />
+            <span>WhatBattery</span>
+          </a>
+          <p>Know your battery's real health, live power use, and where it is heading.</p>
+          <p class="footer-small">A <a href="https://www.bitmoor.co.uk">Bitmoor</a> product by <a href="https://github.com/darrylmorley">Darryl Morley</a>.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <a href="/features/">Features</a>
+          <a href="/pro/">WhatBattery Pro</a>
+          <a href="/cli/">CLI</a>
+          <a href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download</a>
+        </div>
+        <div>
+          <h2>Resources</h2>
+          <a href="/docs/">Guides</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/blog/">Blog</a>
+          <a href="/press/">Press</a>
+          <a href="https://github.com/darrylmorley/whatbattery">Source on GitHub</a>
+        </div>
+        <div>
+          <h2>Family</h2>
+          <a href="https://www.whatcable.uk">WhatCable</a>
+          <a href="https://www.whatport.app">WhatPort</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+      </div>
+      <div class="wrap footer-bottom">
+        <span>MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>Apple Silicon · macOS 14+</span>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var buttons = document.querySelectorAll("[data-buy-pro]");
+        var errorSlots = document.querySelectorAll("[data-buy-error]");
+        buttons.forEach(function (button) {
+          var originalHTML = button.innerHTML;
+          button.addEventListener("click", async function () {
+            buttons.forEach(function (candidate) { candidate.disabled = true; });
+            button.textContent = "Starting secure checkout…";
+            errorSlots.forEach(function (slot) { slot.hidden = true; slot.textContent = ""; });
+            try {
+              var res = await fetch("https://www.whatbattery.app/api/checkout", { method: "POST" });
+              var data = await res.json();
+              if (res.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                throw new Error(data.error || "Could not start checkout. Please try again.");
+              }
+            } catch (err) {
+              errorSlots.forEach(function (slot) { slot.textContent = err.message || "Could not start checkout. Please try again."; slot.hidden = false; });
+              buttons.forEach(function (candidate) { candidate.disabled = false; });
+              button.innerHTML = originalHTML;
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
