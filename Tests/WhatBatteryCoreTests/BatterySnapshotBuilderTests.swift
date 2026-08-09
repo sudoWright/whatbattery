@@ -28,6 +28,27 @@ final class BatterySnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.currentChargePercent, 70)
     }
 
+    /// These two were read from IOKit on every refresh and dropped on the floor
+    /// before the snapshot; the builder is where that was fixed.
+    func testCarriesInstantCurrentAndCriticalFlag() {
+        let battery = AppleSmartBattery(
+            batteryInstalled: true,
+            designCapacity: 4382,
+            nominalChargeCapacity: 4021,
+            rawCurrentCapacity: 260,
+            currentCapacity: 6,
+            maxCapacity: 100,
+            voltage: 11200,
+            amperage: -1850,
+            instantAmperage: -3200,
+            externalConnected: false,
+            atCriticalLevel: true
+        )
+        let snapshot = BatterySnapshotBuilder.build(battery: battery, deviceModel: "x", smcDischargeWatts: nil, now: epoch)
+        XCTAssertEqual(snapshot.instantAmperageMilliamps, -3200)
+        XCTAssertTrue(snapshot.atCriticalLevel)
+    }
+
     func testDischargingFallsBackToGaugeWhenNoSMC() {
         let battery = AppleSmartBattery(
             batteryInstalled: true,
@@ -90,4 +111,43 @@ final class BatterySnapshotBuilderTests: XCTestCase {
         let decoded = try JSONDecoder().decode(BatterySnapshot.self, from: data)
         XCTAssertEqual(decoded, snapshot)
     }
+    /// The reader stores 0 when neither `Temperature` nor `VirtualTemperature`
+    /// gave a usable reading. Passed through as 0.0°C it reads as a cold room,
+    /// which is a worse lie than the 454°C that started DAR-326: it reached the
+    /// display, `--json`, the widget, the temperature alert and the lifetime
+    /// minimum, where it would have stood as an all-time low forever.
+    func testAbsentTemperatureIsNilRatherThanZeroDegrees() {
+        let battery = AppleSmartBattery(
+            batteryInstalled: true,
+            designCapacity: 4382,
+            nominalChargeCapacity: 4021,
+            currentCapacity: 70,
+            maxCapacity: 100,
+            voltage: 12000,
+            temperature: 0,
+            externalConnected: false
+        )
+        let snapshot = BatterySnapshotBuilder.build(
+            battery: battery, deviceModel: "Mac16,6", smcDischargeWatts: nil, now: epoch
+        )
+        XCTAssertNil(snapshot.temperatureCelsius)
+    }
+
+    func testRealTemperatureStillArrives() throws {
+        let battery = AppleSmartBattery(
+            batteryInstalled: true,
+            designCapacity: 4382,
+            nominalChargeCapacity: 4021,
+            currentCapacity: 70,
+            maxCapacity: 100,
+            voltage: 12000,
+            temperature: 3385,
+            externalConnected: false
+        )
+        let snapshot = BatterySnapshotBuilder.build(
+            battery: battery, deviceModel: "Mac16,6", smcDischargeWatts: nil, now: epoch
+        )
+        XCTAssertEqual(try XCTUnwrap(snapshot.temperatureCelsius), 33.85, accuracy: 0.001)
+    }
+
 }
