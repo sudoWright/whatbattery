@@ -3,9 +3,30 @@ layout: base.njk
 title: WhatBattery Pro
 permalink: /pro/
 description: WhatBattery Pro adds battery history, replacement forecasting, iPhone and iPad health, app power, charger analysis, reports, export, and smart alerts for £9.99 once.
+breadcrumbLabel: "Pro"
 ---
 
-<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>Pro</span></nav><span class="section-tag">WhatBattery Pro</span><h1>Track every battery you own for years.</h1><p class="lede">Turn today's reading into a long-term record, a replacement forecast, a charger diagnosis, and evidence you can export. £9.99 once, for up to two Macs.</p><div class="actions"><button class="button buy" type="button" data-buy-pro>Buy WhatBattery Pro · £9.99</button><a class="button secondary" href="#compare">Compare Free and Pro</a></div><div class="meta-row"><span>One-time purchase</span><span>14-day money-back guarantee</span><span>Secure checkout via Stripe</span></div><p class="buy-error" data-buy-error role="alert" hidden></p><figure class="hero-shot"><img src="/img/screenshot-lifetime.png" alt="WhatBattery Pro Lifetime Analyzer: a month of charge and temperature history with lifetime extremes and an export menu" width="1524" height="1148" /></figure></div></header>
+<header class="page-hero pro-hero">
+  <div class="wrap">
+    {% include "breadcrumbs.njk" %}
+    <div class="pro-hero-grid">
+      <div class="pro-hero-copy">
+        <span class="section-tag">WhatBattery Pro</span>
+        <h1>Understand the drain. Follow the wear.</h1>
+        <p class="lede">Explore overnight drain, app power and charging sessions. Keep a battery health record and export the evidence when you need it. £9.99 once, for up to two Macs.</p>
+        <div class="actions">
+          <button class="button buy" type="button" data-buy-pro>Buy WhatBattery Pro · £9.99</button>
+          <a class="button secondary" href="#compare">Compare Free and Pro</a>
+        </div>
+        <div class="meta-row"><span>One-time purchase</span><span>14-day money-back guarantee</span><span>Secure checkout via Stripe</span></div>
+        <p class="buy-error" data-buy-error role="alert" hidden></p>
+      </div>
+      <figure class="hero-shot">
+        <img src="/img/screenshot-lifetime.png" alt="WhatBattery Pro Lifetime Analyzer: a month of charge and temperature history with lifetime extremes and an export menu" width="1524" height="1148" fetchpriority="high" />
+      </figure>
+    </div>
+  </div>
+</header>
 
 
 <section class="soft-section"><div class="wrap feature-lead"><div class="feature-copy"><span class="section-tag">The long view</span><h2>Is 91% stable, or falling fast?</h2><p>A single health figure has no direction. Pro keeps the long-term record needed to show whether wear is gradual, accelerating, or approaching the point where a replacement deserves planning, and it doesn't start from nothing: the pack's own lifetime extremes and the gauge's last recalibration go back to before you installed the app.</p><ul class="benefit-list"><li>Lifetime Analyzer for power, temperature, voltage, and charge</li><li>Monthly health and cycle history per device</li><li>Battery runway forecast for Macs</li><li>Smart alerts for unusual wear and charging conditions</li></ul></div><img src="/img/screenshot-history.png" alt="WhatBattery Pro health history and battery runway" width="440" loading="lazy" /></div></section>
@@ -41,6 +62,6 @@ description: WhatBattery Pro adds battery history, replacement forecasting, iPho
   <div class="comparison-row" role="row"><span role="cell">Anonymous wear comparison (opt-in, off by default)</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
 </div></div></section>
 
-<section class="soft-section"><div class="wrap pricing-layout"><div><span class="section-tag">One simple licence</span><h2>No subscription. No separate device plan.</h2><p class="lede">One key unlocks Pro on up to two Macs. Paste it into Settings on each Mac and keep using the same key after updates.</p><div class="faq-list" style="margin-top:32px;"><div class="faq-item"><h3>What happens after purchase?</h3><p>Stripe completes the payment and the licence key is emailed immediately. Paste it into WhatBattery's Licence settings.</p></div><div class="faq-item"><h3>What if I replace a Mac?</h3><p>Contact support through the GitHub repository and a licence slot can be freed for the replacement.</p></div><div class="faq-item"><h3>What if Pro is not right for me?</h3><p>Purchases have a 14-day money-back guarantee, no questions asked.</p></div></div></div><aside class="pricing-card" aria-label="WhatBattery Pro price"><span class="card-label">One-time purchase</span><span class="price">£9.99</span><span class="price-note">Works on up to 2 Macs</span><ul class="benefit-list"><li>Every Pro feature</li><li>Future updates to the purchased app</li><li>Licence key delivered by email</li><li>14-day money-back guarantee</li></ul><button class="button buy" type="button" data-buy-pro>Buy WhatBattery Pro</button><p class="buy-note">Secure checkout via Stripe.</p><p class="buy-error" data-buy-error role="alert" hidden></p></aside></div></section>
+<section class="soft-section"><div class="wrap pricing-layout"><div><span class="section-tag">One simple licence</span><h2>No subscription. No separate device plan.</h2><p class="lede">One key unlocks Pro on up to two Macs. Paste it into Settings on each Mac and keep using the same key after updates.</p><div class="faq-list" style="margin-top:32px;"><div class="faq-item"><h3>What happens after purchase?</h3><p>Stripe completes the payment and the licence key is emailed immediately. Paste it into WhatBattery's Licence settings.</p></div><div class="faq-item"><h3>What if I replace a Mac?</h3><p>Contact support through the GitHub repository and a licence slot can be freed for the replacement.</p></div><div class="faq-item"><h3>What if Pro is not right for me?</h3><p>Purchases have a 14-day money-back guarantee, no questions asked.</p></div></div></div><aside class="pricing-card" aria-label="WhatBattery Pro price"><span class="card-label">One-time purchase</span><span class="price">£9.99</span><span class="price-note">Works on up to 2 Macs</span><ul class="benefit-list"><li>Every Pro feature</li><li>Future updates to the purchased app</li><li>Licence key delivered by email</li><li>14-day money-back guarantee</li></ul><button class="button buy" type="button" data-buy-pro>Buy WhatBattery Pro</button><p class="buy-note">Secure checkout via Stripe.</p><p class="price-note" style="margin-top: 10px;">Student or educator? Email <a href="mailto:support@whatbattery.app">support@whatbattery.app</a> from your academic address for 50% off.</p><p class="buy-error" data-buy-error role="alert" hidden></p></aside></div></section>
 
 <section class="cta-band"><div class="wrap cta-grid"><div><h2>Keep enough history to know what comes next.</h2><p>Unlock WhatBattery Pro once on up to two Macs.</p></div><button class="button primary" type="button" data-buy-pro>Buy Pro · £9.99</button></div></section>

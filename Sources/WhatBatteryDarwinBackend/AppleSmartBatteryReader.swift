@@ -14,15 +14,7 @@ public enum AppleSmartBatteryReader {
     }
 
     public static func read() -> Result {
-        let matching = IOServiceMatching("AppleSmartBattery")
-        var iter: io_iterator_t = 0
-        guard IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iter) == KERN_SUCCESS else {
-            return Result(isDesktopMac: true, battery: nil)
-        }
-        defer { IOObjectRelease(iter) }
-
-        let service = IOIteratorNext(iter)
-        guard service != 0 else {
+        guard let service = installedBatteryService() else {
             return Result(isDesktopMac: true, battery: nil)
         }
         defer { IOObjectRelease(service) }
@@ -32,42 +24,59 @@ public enum AppleSmartBatteryReader {
         // IOCFUnserializeBinary when the kernel returns a malformed blob during
         // teardown. The per-key call has no such failure path. (WhatCable #181.)
         func read(_ key: String) -> Any? {
-            IORegistryEntryCreateCFProperty(service, key as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue()
+            property(service, key)
         }
 
-        guard boolVal(read("BatteryInstalled")) else {
-            return Result(isDesktopMac: true, battery: nil)
-        }
+        // macOS 27 moved most of the gauge's figures (raw capacities,
+        // temperatures, manufacture date, lifetime, per-cell data) off this
+        // node onto its registry children. Older OSes have no such children,
+        // so the child read comes back empty and everything below reads as
+        // before: the node's own values always win in the merge.
+        let nodeBatteryData = read("BatteryData") as? [String: Any]
+        let children = readChildNodes(of: service)
+        let tree = batteryTree(service: service, nodeBatteryData: nodeBatteryData, children: children)
+        let batteryData = BatteryChildNodes.mergedBatteryData(
+            node: nodeBatteryData,
+            pack: children.pack,
+            banks: children.banks,
+            expectedBankCount: children.bankCount
+        )
 
         // Read once, convert once, and keep the "absent" case distinct from a
         // real zero: the pack-detail cross-check needs to know the difference,
         // while the model's own field is non-optional and takes 0 for missing as
         // it always has.
         //
-        // `Temperature` is tenths of a Kelvin here, not centi-Celsius: macOS
-        // publishes the raw SmartBattery value. Converting at the edge
-        // means `AppleSmartBattery.temperature` means the same thing whichever
-        // reader filled it, which is what the rest of the app assumes.
-        // `VirtualTemperature` is the same measurement compensated by the gauge,
-        // and the driver publishes it in centi-Celsius on every platform, so it
-        // is a usable stand-in when the main reading is missing or nonsense. On
-        // this hardware the two agree to a fraction of a degree. Without it, an
-        // unusable reading became a confident 0°C downstream, which then reached
-        // the display, the history statistics and the report.
-        let virtualCentiC = optionalIntVal(read("VirtualTemperature"))
-            .flatMap { BatteryHealth.isPlausibleCentiCelsius($0) ? $0 : nil }
-        let temperatureCentiC = optionalIntVal(read("Temperature"))
-            .flatMap { BatteryHealth.centiCelsius(fromDeciKelvin: $0) }
-            ?? virtualCentiC
+        // The node's `Temperature` is tenths of a Kelvin on a Mac, not
+        // centi-Celsius: macOS publishes the raw SmartBattery value. Converting
+        // at the edge means `AppleSmartBattery.temperature` means the same thing
+        // whichever reader filled it. `VirtualTemperature` is centi-Celsius on
+        // every platform and stands in when the main reading is missing or
+        // nonsense, which is also how macOS 27's pack-level readings arrive.
+        let temperatures = BatteryChildNodes.temperatures(
+            nodeTemperatureRaw: optionalIntVal(read("Temperature")),
+            nodeVirtualRaw: optionalIntVal(read("VirtualTemperature")),
+            pack: children.pack
+        )
+        let virtualCentiC = temperatures.virtualCentiC
+        let temperatureCentiC = temperatures.temperatureCentiC
 
         let battery = AppleSmartBattery(
             batteryInstalled: true,
             deviceName: (read("DeviceName") as? String) ?? "",
             serial: (read("Serial") as? String) ?? "",
-            designCapacity: intVal(read("DesignCapacity")),
-            nominalChargeCapacity: intVal(read("NominalChargeCapacity")),
-            rawMaxCapacity: intVal(read("AppleRawMaxCapacity")),
-            rawCurrentCapacity: intVal(read("AppleRawCurrentCapacity")),
+            designCapacity: AppleSmartBatteryMapper.capacity(
+                topLevel: read("DesignCapacity"), batteryData: batteryData, key: "DesignCapacity"
+            ),
+            nominalChargeCapacity: AppleSmartBatteryMapper.capacity(
+                topLevel: read("NominalChargeCapacity"), batteryData: batteryData, key: "NominalChargeCapacity"
+            ),
+            rawMaxCapacity: AppleSmartBatteryMapper.capacity(
+                topLevel: read("AppleRawMaxCapacity"), batteryData: batteryData, key: "AppleRawMaxCapacity"
+            ),
+            rawCurrentCapacity: AppleSmartBatteryMapper.capacity(
+                topLevel: read("AppleRawCurrentCapacity"), batteryData: batteryData, key: "AppleRawCurrentCapacity"
+            ),
             currentCapacity: intVal(read("CurrentCapacity")),
             maxCapacity: intVal(read("MaxCapacity")),
             designCycleCount: intVal(read("DesignCycleCount9C")),
@@ -89,12 +98,15 @@ public enum AppleSmartBatteryReader {
             chargerData: parseChargerData(read("ChargerData")),
             adapter: parseAdapterDetails(read("AdapterDetails")),
             packDetail: BatteryPackDetail.from(
-                batteryData: read("BatteryData") as? [String: Any],
+                batteryData: batteryData,
                 // The node's own thermometer, in a scale we know, so the pack's
                 // undeclared lifetime temperatures can be checked against it.
                 // Absent stays absent: 0 would read as 0°C and veto every real
                 // range, which is the opposite of degrading gracefully.
-                currentTemperatureCentiC: temperatureCentiC
+                currentTemperatureCentiC: temperatureCentiC,
+                cycleCountAtLastQmax: BatteryFieldResolver.resolve(
+                    BatteryFieldMap.cycleCountAtLastQmax, in: tree
+                ).value
             )
         )
         return Result(isDesktopMac: false, battery: battery)
@@ -126,6 +138,55 @@ public enum AppleSmartBatteryReader {
     }
 
     // MARK: - Helpers
+
+    /// The installed battery's service, or nil on a Mac without one (no
+    /// service, or `BatteryInstalled` false). The caller releases it.
+    private static func installedBatteryService() -> io_service_t? {
+        let matching = IOServiceMatching("AppleSmartBattery")
+        var iter: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iter) == KERN_SUCCESS else { return nil }
+        defer { IOObjectRelease(iter) }
+        let service = IOIteratorNext(iter)
+        guard service != 0 else { return nil }
+        guard boolVal(property(service, "BatteryInstalled")) else {
+            IOObjectRelease(service)
+            return nil
+        }
+        return service
+    }
+
+    /// The node and its children as a `BatteryTree`. The node's top level
+    /// cannot be listed safely (WhatCable #181), so it carries `BatteryData`
+    /// plus every key the field map names, each read on its own. The pack
+    /// carries its `BatteryData`; each bank its `BankID` and `BatteryData`.
+    private static func batteryTree(
+        service: io_service_t,
+        nodeBatteryData: [String: Any]?,
+        children: (pack: [String: Any]?, banks: [BatteryBankData], bankCount: Int?)
+    ) -> BatteryTree {
+        var battery: [String: Any] = [:]
+        if let nodeBatteryData { battery["BatteryData"] = nodeBatteryData }
+        for key in BatteryFieldMap.topLevelKeys {
+            if let value = property(service, key) { battery[key] = value }
+        }
+        return BatteryTree(
+            battery: battery,
+            pack: children.pack.map { ["BatteryData": $0] },
+            banks: children.banks.map { ["BankID": $0.bankID, "BatteryData": $0.batteryData] }
+        )
+    }
+
+    /// The battery tree on its own, for diagnostics (`--fields`). Nil where
+    /// `read()` would report a desktop Mac.
+    public static func readTree() -> BatteryTree? {
+        guard let service = installedBatteryService() else { return nil }
+        defer { IOObjectRelease(service) }
+        return batteryTree(
+            service: service,
+            nodeBatteryData: property(service, "BatteryData") as? [String: Any],
+            children: readChildNodes(of: service)
+        )
+    }
 
     private static func nonEmptyString(_ value: Any?) -> String? {
         let raw: String?
@@ -168,5 +229,46 @@ public enum AppleSmartBatteryReader {
         if let n = value as? NSNumber { return n.boolValue }
         if let b = value as? Bool { return b }
         return false
+    }
+
+    /// The pack's `BatteryData` and each bank's (`BankID`, `BatteryData`),
+    /// read from `AppleSmartBattery`'s IOService-plane children on macOS 27.
+    /// Empty on older OSes. Per-key reads, like the node itself (WhatCable #181).
+    /// Only the first pack is read: the node reports one (`BatteryPackCount` 1).
+    private static func readChildNodes(of service: io_registry_entry_t) -> (pack: [String: Any]?, banks: [BatteryBankData], bankCount: Int?) {
+        var pack: [String: Any]?
+        var banks: [BatteryBankData] = []
+        var bankCount: Int?
+        var foundPack = false
+        forEachChild(of: service) { child in
+            guard !foundPack, IOObjectConformsTo(child, "AppleSmartBatteryPack") != 0 else { return }
+            foundPack = true
+            pack = property(child, "BatteryData") as? [String: Any]
+            bankCount = optionalIntVal(property(child, "BankCount"))
+            forEachChild(of: child) { bank in
+                guard IOObjectConformsTo(bank, "AppleSmartBatteryBank") != 0 else { return }
+                banks.append(BatteryBankData(
+                    bankID: optionalIntVal(property(bank, "BankID")) ?? -1,
+                    batteryData: (property(bank, "BatteryData") as? [String: Any]) ?? [:]
+                ))
+            }
+        }
+        return (pack, banks, bankCount)
+    }
+
+    private static func forEachChild(of entry: io_registry_entry_t, _ body: (io_registry_entry_t) -> Void) {
+        var iterator: io_iterator_t = 0
+        guard IORegistryEntryGetChildIterator(entry, kIOServicePlane, &iterator) == KERN_SUCCESS else { return }
+        defer { IOObjectRelease(iterator) }
+        var child = IOIteratorNext(iterator)
+        while child != 0 {
+            body(child)
+            IOObjectRelease(child)
+            child = IOIteratorNext(iterator)
+        }
+    }
+
+    private static func property(_ entry: io_registry_entry_t, _ key: String) -> Any? {
+        IORegistryEntryCreateCFProperty(entry, key as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue()
     }
 }
